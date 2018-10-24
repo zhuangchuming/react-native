@@ -62,6 +62,12 @@ import javax.annotation.Nullable;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.webkit.WebResourceRequest;
+import android.webkit.WebResourceResponse;
+import java.net.URL;
+import java.net.URLConnection;
+import java.io.IOException;
+import java.net.MalformedURLException;
 /**
  * Manages instances of {@link WebView}
  *
@@ -104,6 +110,8 @@ public class ReactWebViewManager extends SimpleViewManager<WebView> {
   // Use `webView.loadUrl("about:blank")` to reliably reset the view
   // state and release page resources (including any running JavaScript).
   protected static final String BLANK_URL = "about:blank";
+
+  public static String COMURL = "";//请求替换的地址
 
   protected WebViewConfig mWebViewConfig;
   protected @Nullable WebView.PictureListener mPictureListener;
@@ -235,6 +243,42 @@ public class ReactWebViewManager extends SimpleViewManager<WebView> {
 
     public void setOriginWhitelist(List<Pattern> originWhitelist) {
       mOriginWhitelist = originWhitelist;
+    }
+
+    // 复写shouldInterceptRequest
+    //API21以下用shouldInterceptRequest(WebView view, String url)
+    @Override
+    @SuppressWarnings("unchecked")
+    public WebResourceResponse shouldInterceptRequest(WebView view, String url) {
+      String p0 = "^http(s)?://([\\w-]+\\.)gaomuxuexi\\.com/(static/.*|index\\.htm){1}";//本地资源判断正则
+      boolean t=Pattern.matches(p0,url);
+      if(t){
+        //读取本地资源
+        String fn=url.replace(COMURL,"dist/");//comurl="https://ext.gaomuxuexi.com/"; 替换成本地路径
+        String path = url.replace(COMURL,"file:///android_asset/dist/");//获取文件访问的绝对路径
+        try {
+          URLConnection uc= getMimeType(path);//获取ContentType跟code
+          return new WebResourceResponse(uc.getContentType(), uc.getHeaderField("encoding"), view.getContext().getAssets().open(fn));// getAssets().open(fn)读取文件，返回的是inputStream
+        } catch (IOException e) {
+          e.printStackTrace();
+        }
+      }
+      return super.shouldInterceptRequest(view, url);
+    }
+
+    // API21以上用shouldInterceptRequest(WebView view, WebResourceRequest request)
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    @Override
+    public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
+      return shouldInterceptRequest(view, request.getUrl().toString());
+    }
+
+    public URLConnection getMimeType(String fileUrl) throws java.io.IOException, MalformedURLException
+    {
+      URL u = new URL(fileUrl);
+      URLConnection uc = null;
+      uc = u.openConnection();
+      return uc;
     }
   }
 
@@ -511,6 +555,8 @@ public class ReactWebViewManager extends SimpleViewManager<WebView> {
       }
       if (source.hasKey("uri")) {
         String url = source.getString("uri");
+        //chuming
+        COMURL = url;
         String previousUrl = view.getUrl();
         if (previousUrl != null && previousUrl.equals(url)) {
           return;
@@ -549,7 +595,7 @@ public class ReactWebViewManager extends SimpleViewManager<WebView> {
             }
           }
         }
-        view.loadUrl(url, headerMap);
+        view.loadUrl(url+"index.htm", headerMap);
         return;
       }
     }
