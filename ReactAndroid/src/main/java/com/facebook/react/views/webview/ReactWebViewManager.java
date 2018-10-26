@@ -399,12 +399,12 @@ public class ReactWebViewManager extends SimpleViewManager<WebView> {
           });
         }
 
-        evaluateJavascriptWithFallback("(" +
-          "window.originalPostMessage = window.postMessage," +
-          "window.postMessage = function(data) {" +
-          BRIDGE_NAME + ".postMessage(String(data));" +
-          "}" +
-          ")");
+        // evaluateJavascriptWithFallback("(" +
+        //   "window.originalPostMessage = window.postMessage," +
+        //   "window.postMessage = function(data) {" +
+        //   BRIDGE_NAME + ".postMessage(String(data));" +
+        //   "}" +
+        //   ")");
       }
     }
 
@@ -556,7 +556,8 @@ public class ReactWebViewManager extends SimpleViewManager<WebView> {
       if (source.hasKey("uri")) {
         String url = source.getString("uri");
         //chuming
-        COMURL = url;
+        COMURL = url.substring(0,url.lastIndexOf('/')+1);
+        System.out.println("COMURL: " + COMURL);
         String previousUrl = view.getUrl();
         if (previousUrl != null && previousUrl.equals(url)) {
           return;
