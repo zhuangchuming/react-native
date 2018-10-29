@@ -294,6 +294,13 @@ RCT_NOT_IMPLEMENTED(- (instancetype)initWithCoder:(NSCoder *)aDecoder)
   }
 }
 
+- (void)webViewDidStartLoad:(UIWebView *)webView
+{
+    JSContext* context =[webView valueForKeyPath:@"documentView.webView.mainFrame.javaScriptContext"];
+    NSLog(@"%@",context);
+    context[BRIDGE_NAME] = [[NSObject alloc] init];
+}
+
 - (void)webViewDidFinishLoad:(UIWebView *)webView
 {
   if (_messagingEnabled) {
@@ -321,7 +328,7 @@ RCT_NOT_IMPLEMENTED(- (instancetype)initWithCoder:(NSCoder *)aDecoder)
           "window.location = '%@://%@?' + encodeURIComponent(messageQueue.shift());"
         "}"
 
-        "window.postMessage = function(data) {"
+        "%@.postMessage = function(data) {"
           "messageQueue.push(String(data));"
           "processQueue();"
         "};"
@@ -330,7 +337,7 @@ RCT_NOT_IMPLEMENTED(- (instancetype)initWithCoder:(NSCoder *)aDecoder)
           "messagePending = false;"
           "processQueue();"
         "});"
-      "})();", RCTJSNavigationScheme, kPostMessageHost
+      "})();", RCTJSNavigationScheme, kPostMessageHost, BRIDGE_NAME
     ];
     [webView stringByEvaluatingJavaScriptFromString:source];
   }

@@ -25,6 +25,8 @@ shouldStartLoadForRequest:(NSMutableDictionary<NSString *, id> *)request
 
 @end
 
+static NSString *BRIDGE_NAME = @"__REACT_WEB_VIEW_BRIDGE";
+
 @interface RCTWebView : RCTView
 
 @property (nonatomic, weak) id<RCTWebViewDelegate> delegate;
