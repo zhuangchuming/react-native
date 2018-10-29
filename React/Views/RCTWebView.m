@@ -8,6 +8,7 @@
 #import "RCTWebView.h"
 
 #import <UIKit/UIKit.h>
+#import <JavaScriptCore/JavaScriptCore.h>
 
 #import "RCTAutoInsetsProtocol.h"
 #import "RCTConvert.h"
