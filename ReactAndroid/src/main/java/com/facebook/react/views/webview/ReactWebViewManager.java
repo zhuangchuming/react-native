@@ -557,7 +557,6 @@ public class ReactWebViewManager extends SimpleViewManager<WebView> {
         String url = source.getString("uri");
         //chuming
         COMURL = url.substring(0,url.lastIndexOf('/')+1);
-        System.out.println("COMURL: " + COMURL);
         String previousUrl = view.getUrl();
         if (previousUrl != null && previousUrl.equals(url)) {
           return;
@@ -596,7 +595,7 @@ public class ReactWebViewManager extends SimpleViewManager<WebView> {
             }
           }
         }
-        view.loadUrl(url+"index.htm", headerMap);
+        view.loadUrl(url, headerMap);
         return;
       }
     }
