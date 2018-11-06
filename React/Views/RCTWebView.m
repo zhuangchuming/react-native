@@ -109,6 +109,11 @@ RCT_NOT_IMPLEMENTED(- (instancetype)initWithCoder:(NSCoder *)aDecoder)
 - (void)setSource:(NSDictionary *)source
 {
   if (![_source isEqualToDictionary:source]) {
+
+    if(source[@"srcPath"]!=nil&&![source[@"srcPath"] isEqualToString:@""]){
+      [RCTWebViewPathSingleton sharedSingleton].srcPath = source[@"srcPath"];
+    }
+    
     _source = [source copy];
 
     // Check for a static html source first
@@ -353,6 +358,29 @@ RCT_NOT_IMPLEMENTED(- (instancetype)initWithCoder:(NSCoder *)aDecoder)
   // we only need the final 'finishLoad' call so only fire the event when we're actually done loading.
   else if (_onLoadingFinish && !webView.loading && ![webView.request.URL.absoluteString isEqualToString:@"about:blank"]) {
     _onLoadingFinish([self baseEvent]);
+  }
+}
+
+@end
+
+
+
+/**
+ * webview 加载的离线资源的单例  用于存储webview应加载离线资源的路径
+ */
+@implementation RCTWebViewPathSingleton
+@synthesize srcPath;
+
++ (RCTWebViewPathSingleton *)sharedSingleton
+{
+  static RCTWebViewPathSingleton *sharedSingleton;
+  
+  @synchronized(self)
+  {
+    if (!sharedSingleton){
+      sharedSingleton = [[RCTWebViewPathSingleton alloc] init];
+    }
+    return sharedSingleton;
   }
 }
 
