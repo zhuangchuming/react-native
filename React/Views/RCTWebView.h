@@ -46,3 +46,15 @@ static NSString *BRIDGE_NAME = @"__REACT_WEB_VIEW_BRIDGE";
 - (void)injectJavaScript:(NSString *)script;
 
 @end
+
+
+/**
+ * webview 加载的离线资源的单例  用于存储webview应加载离线资源的路径
+ */
+
+@interface RCTWebViewPathSingleton : NSObject
+// 添加新属性 资源加载路径
+@property (nonatomic,copy) NSString *srcPath;
++ (RCTWebViewPathSingleton *)sharedSingleton;
+
+@end
