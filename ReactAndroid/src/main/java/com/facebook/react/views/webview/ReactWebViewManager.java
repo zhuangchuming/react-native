@@ -49,7 +49,10 @@ import com.facebook.react.views.webview.events.TopLoadingErrorEvent;
 import com.facebook.react.views.webview.events.TopLoadingFinishEvent;
 import com.facebook.react.views.webview.events.TopLoadingStartEvent;
 import com.facebook.react.views.webview.events.TopMessageEvent;
+
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.net.FileNameMap;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -112,7 +115,7 @@ public class ReactWebViewManager extends SimpleViewManager<WebView> {
   protected static final String BLANK_URL = "about:blank";
 
   public static String COMURL = "";//请求替换的地址
-
+  public static String BASEFILEPATH ="file:///android_asset/bundle/";
   protected WebViewConfig mWebViewConfig;
   protected @Nullable WebView.PictureListener mPictureListener;
 
@@ -254,11 +257,16 @@ public class ReactWebViewManager extends SimpleViewManager<WebView> {
       boolean t=Pattern.matches(p0,url);
       if(t){
         //读取本地资源
-        String fn=url.replace(COMURL,"dist/");//comurl="https://ext.gaomuxuexi.com/"; 替换成本地路径
-        String path = url.replace(COMURL,"file:///android_asset/dist/");//获取文件访问的绝对路径
+        String path = url.replace(COMURL,BASEFILEPATH);//获取文件访问的绝对路径
         try {
           URLConnection uc= getMimeType(path);//获取ContentType跟code
-          return new WebResourceResponse(uc.getContentType(), uc.getHeaderField("encoding"), view.getContext().getAssets().open(fn));// getAssets().open(fn)读取文件，返回的是inputStream
+          InputStream inputStream;
+          if(Pattern.matches("^file:///android_asset.*",path)){//这个资源要访问asset
+            inputStream=view.getContext().getAssets().open(path.replace("file:///android_asset/",""));
+          }else{//否则访问目录文件夹
+            inputStream=uc.getInputStream();
+          }
+          return new WebResourceResponse(uc.getContentType(), uc.getHeaderField("encoding"), inputStream);// getAssets().open(fn)读取文件，返回的是inputStream view.getContext().getAssets().open(fn)
         } catch (IOException e) {
           e.printStackTrace();
         }
@@ -275,10 +283,11 @@ public class ReactWebViewManager extends SimpleViewManager<WebView> {
 
     public URLConnection getMimeType(String fileUrl) throws java.io.IOException, MalformedURLException
     {
+      if(!Pattern.matches("^[http|file].*",fileUrl)){
+          fileUrl="file://"+fileUrl;
+      }
       URL u = new URL(fileUrl);
-      URLConnection uc = null;
-      uc = u.openConnection();
-      return uc;
+      return u.openConnection();
     }
   }
 
@@ -552,6 +561,10 @@ public class ReactWebViewManager extends SimpleViewManager<WebView> {
           view.loadData(html, HTML_MIME_TYPE, HTML_ENCODING);
         }
         return;
+      }
+
+      if(source.hasKey("srcPath")){
+        BASEFILEPATH=source.getString("srcPath");
       }
       if (source.hasKey("uri")) {
         String url = source.getString("uri");
