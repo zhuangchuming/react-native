@@ -25,7 +25,7 @@ shouldStartLoadForRequest:(NSMutableDictionary<NSString *, id> *)request
 
 @end
 
-static NSString *BRIDGE_NAME = @"__REACT_WEB_VIEW_BRIDGE";
+static NSString *BRIDGE_NAME = @"GAOMUAPI_WEBVIEW_BRIDGE";
 
 @interface RCTWebView : RCTView
 
