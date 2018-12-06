@@ -40,6 +40,7 @@ public class VideoWebChromeClient extends WebChromeClient {
     public Integer nbFois;
     private ViewGroup.LayoutParams paramsNotFullscreen;
     private ThemedReactContext mReactContext;
+    private int oritation;//全屏前先获取屏幕的横竖屏状态
 
     public VideoWebChromeClient(Activity activity, WebView webView, ThemedReactContext reactContext) {
         mWebView = webView;
@@ -78,7 +79,10 @@ public class VideoWebChromeClient extends WebChromeClient {
         mCustomViewCallback = callback;
 
         view.setBackgroundColor(Color.BLACK);
-        mActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+        oritation = mActivity.getResources().getConfiguration().orientation;//获取屏幕方向
+        if(oritation!=ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE&&oritation!=ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE&&oritation!=ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE){
+            mActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
+        }
         getRootView().addView(mVideoView, FULLSCREEN_LAYOUT_PARAMS);
 
         // ((View) mWebView.getRootView()).setVisibility(View.GONE);
@@ -90,7 +94,10 @@ public class VideoWebChromeClient extends WebChromeClient {
         if (mVideoView == null) {
             return;
         }
-        mActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        int ori = mActivity.getResources().getConfiguration().orientation;//获取屏幕方向
+        if(ori!=oritation){
+            mActivity.setRequestedOrientation(oritation);
+        }
         ((View) mWebView.getRootView()).setVisibility(View.VISIBLE);
         mVideoView.setVisibility(View.GONE);
 
