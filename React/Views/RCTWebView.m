@@ -22,7 +22,7 @@ NSString *const RCTJSNavigationScheme = @"react-js-navigation";
 
 static NSString *const kPostMessageHost = @"postMessage";
 
-@interface RCTWebView () <UIWebViewDelegate, RCTAutoInsetsProtocol>
+@interface RCTWebView () <UIWebViewDelegate, RCTAutoInsetsProtocol,UIGestureRecognizerDelegate>
 
 @property (nonatomic, copy) RCTDirectEventBlock onLoadingStart;
 @property (nonatomic, copy) RCTDirectEventBlock onLoadingFinish;
@@ -41,6 +41,8 @@ static NSString *const kPostMessageHost = @"postMessage";
 - (void)dealloc
 {
   _webView.delegate = nil;
+  // 移除监听
+  [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
 - (instancetype)initWithFrame:(CGRect)frame
@@ -58,8 +60,31 @@ static NSString *const kPostMessageHost = @"postMessage";
 #endif
     [self addSubview:_webView];
   }
+  // 添加视频全屏层监听
+  if (@available(iOS 12.0, *)){
+    [self addObserverNotification];
+  }
   return self;
 }
+
+
+#pragma mark  --通知  解决iOS12后的全屏播放视频后退出全屏，状态栏消失的问题
+-(void)addObserverNotification
+{
+  [[NSNotificationCenter defaultCenter]addObserver:self selector:@selector(windowDidBecomeHidden:) name:UIWindowDidBecomeHiddenNotification object:nil];
+}
+
+-(void)windowDidBecomeHidden:(NSNotification *)noti{
+  UIWindow * win = (UIWindow *)noti.object;
+  if(win){
+    UIViewController *rootVC = win.rootViewController;
+    NSArray<__kindof UIViewController *> *vcs = rootVC.childViewControllers;
+    if([vcs.firstObject isKindOfClass:NSClassFromString(@"AVPlayerViewController")]){
+      [[UIApplication sharedApplication] setStatusBarHidden:NO withAnimation:UIStatusBarAnimationNone];
+    }
+  }
+}
+
 
 RCT_NOT_IMPLEMENTED(- (instancetype)initWithCoder:(NSCoder *)aDecoder)
 
@@ -359,6 +384,7 @@ RCT_NOT_IMPLEMENTED(- (instancetype)initWithCoder:(NSCoder *)aDecoder)
   else if (_onLoadingFinish && !webView.loading && ![webView.request.URL.absoluteString isEqualToString:@"about:blank"]) {
     _onLoadingFinish([self baseEvent]);
   }
+  
 }
 
 @end
@@ -385,3 +411,4 @@ RCT_NOT_IMPLEMENTED(- (instancetype)initWithCoder:(NSCoder *)aDecoder)
 }
 
 @end
+
